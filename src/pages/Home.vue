@@ -44,8 +44,11 @@
 
       <!-- O símbolo inteiro, dentro da tela — é a marca, não um grafismo cortado -->
       <div class="hero-marca">
-        <EloSymbol :size="galhoSize" cor="#FFD18B" animar
-                   alt="Galho com folhas dentro de um círculo, símbolo da ELO" />
+        <div class="marca-palco" :style="{ width: galhoSize + 'px', height: galhoSize + 'px' }">
+          <VentoSuave />
+          <EloSymbol class="galho-flutua" :size="galhoSize" cor="#FFD18B" animar
+                     alt="Galho com folhas dentro de um círculo, símbolo da ELO" />
+        </div>
       </div>
     </div>
   </section>
@@ -103,6 +106,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import EloSymbol from '@/components/EloSymbol.vue'
+import VentoSuave from '@/components/VentoSuave.vue'
 import SecaoTitulo from '@/components/SecaoTitulo.vue'
 import ListaEditorial from '@/components/ListaEditorial.vue'
 import { HOME } from '@/config/content'
@@ -138,6 +142,29 @@ onUnmounted(() => window.removeEventListener('resize', ajustar))
 }
 .hero-marca { display: flex; justify-content: center; }
 @media (min-width: 1000px) { .hero-marca { justify-content: flex-end; } }
+
+/* Palco do símbolo: o vento fica atrás, na mesma caixa */
+.marca-palco { position: relative; flex: 0 0 auto; }
+
+/* Balanço do galho ao vento. Começa depois que ele termina de se desenhar (2s),
+   senão as duas animações brigam. Ciclo longo e amplitude pequena: é respiração,
+   não gangorra. transform-origin embaixo, como um galho preso ao caule. */
+.galho-flutua {
+  position: relative;
+  transform-origin: 50% 92%;
+  animation: balanco 9s cubic-bezier(0.45, 0, 0.55, 1) 2s infinite;
+}
+@keyframes balanco {
+  0%   { transform: rotate(-1.1deg) translateY(0); }
+  30%  { transform: rotate(0.5deg)  translateY(-4px); }
+  55%  { transform: rotate(1.2deg)  translateY(-2px); }
+  80%  { transform: rotate(0.2deg)  translateY(-5px); }
+  100% { transform: rotate(-1.1deg) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .galho-flutua { animation: none; }
+}
 /* No mobile o símbolo vem depois do texto: quem chega em urgência lê primeiro */
 @media (max-width: 999px) {
   .hero-marca { order: 2; opacity: 0.9; }
