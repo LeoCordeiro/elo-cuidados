@@ -1,0 +1,224 @@
+/* ============================================================
+   ELO — tokens de marca
+   Canvas verde profundo + tipo cor de osso + serifa clássica + um acento único.
+   Ver DESIGN.md na raiz para a direção visual completa.
+
+   Contraste medido (nao estimar):
+     branco  / #4A8B8B ....  3,92:1  -> so grafico, nunca fundo de texto
+     #FFD18B / #4A8B8B ....  2,75:1  -> nunca texto
+     branco  / #326565 ....  6,59:1
+     branco  / #2C5757 ....  8,05:1
+     #FFD18B / #2C5757 ....  5,65:1  -> CTA
+     #24403F / #EDE8DC ....  9,17:1  -> corpo sobre papel
+   ============================================================ */
+:root {
+  /* Canvas */
+  --elo-verde: #4A8B8B;          /* cor de marca — glow e grafismo, NAO fundo de texto */
+  --elo-verde-medio: #3D7676;
+  --elo-verde-fundo: #326565;
+  --elo-verde-escuro: #2C5757;
+  --elo-verde-tinta: #1E4444;    /* mais profundo, para blocos de respiro */
+
+  /* Acento unico */
+  --elo-dourado: #FFD18B;
+  --elo-dourado-claro: #FFE3BC;
+
+  /* Papel */
+  --elo-papel: #EDE8DC;          /* osso, nao branco clinico */
+  --elo-papel-claro: #F5F1E8;
+  --elo-branco: #FFFFFF;
+
+  --elo-tinta: #24403F;
+  /* #55706F media 4,37:1 sobre o papel osso — abaixo de AA. Este mede 5,06:1.
+     O papel e mais escuro que branco, entao o texto secundario desceu junto. */
+  --elo-tinta-suave: #4C6665;
+
+  --fonte-display: 'Playfair Display', Georgia, serif;
+  --fonte-corpo: 'Jost', system-ui, sans-serif;
+
+  --secao-y: 48px;
+  --secao-y-lg: 76px;
+  --header-h: 76px;
+  --radius: 4px;                 /* cantos discretos; nada de cartao pill */
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-hover: 180ms;
+  --dur-entrada: 420ms;
+  --dur-reveal: 620ms;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--fonte-corpo);
+  color: var(--elo-tinta);
+  background: var(--elo-papel);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Tipografia ---------- */
+.t-display {
+  font-family: var(--fonte-display);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.022em;
+}
+.t-hero { font-size: clamp(2.7rem, 7vw, 5.2rem); }
+.t-secao { font-size: clamp(1.9rem, 4vw, 3.1rem); }
+.t-sub { font-family: var(--fonte-display); font-weight: 400; font-size: clamp(1.25rem, 2vw, 1.6rem); line-height: 1.3; }
+
+/* Label em caixa alta com tracking largo */
+.t-label {
+  font-family: var(--fonte-corpo);
+  font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.2em; font-size: 0.73rem;
+}
+.t-tagline {
+  font-family: var(--fonte-corpo); font-weight: 300;
+  text-transform: uppercase; letter-spacing: 0.36em;
+  font-size: clamp(0.64rem, 1.3vw, 0.78rem);
+}
+.t-corpo { font-size: 1rem; line-height: 1.62; font-weight: 400; max-width: 68ch; }
+.t-corpo-g { font-size: clamp(1.05rem, 1.5vw, 1.2rem); line-height: 1.6; font-weight: 400; max-width: 60ch; }
+
+/* ---------- Seções: alternância clara/escura para ritmo ---------- */
+.secao { padding: var(--secao-y) 0; }
+@media (min-width: 960px) { .secao { padding: var(--secao-y-lg) 0; } }
+.secao-papel { background: var(--elo-papel); }
+.secao-papel-claro { background: var(--elo-papel-claro); }
+
+/* Fundos verdes: o #4A8B8B entra so como glow, longe da coluna de texto */
+.fundo-verde {
+  background:
+    radial-gradient(58% 92% at 93% 88%, #4A8B8B 0%, rgba(74, 139, 139, 0) 62%),
+    linear-gradient(120deg, #326565 0%, #2C5757 100%);
+}
+.fundo-verde-hero {
+  background:
+    radial-gradient(76% 66% at 86% 4%, #4A8B8B 0%, rgba(74, 139, 139, 0) 58%),
+    linear-gradient(166deg, #326565 0%, #2C5757 100%);
+}
+.fundo-verde-fundo { background: var(--elo-verde-tinta); }
+
+/* ---------- Régua: a assinatura do sistema ----------
+   Substitui o card com sombra e o ícone em quadradinho. Divide, marca e
+   hierarquiza usando o dourado da marca. */
+.regua {
+  display: block; height: 1px; border: 0; margin: 0;
+  background: var(--elo-dourado); opacity: 0.5;
+}
+.regua-forte { height: 2px; opacity: 1; width: 64px; }
+.regua-escura { background: var(--elo-verde); opacity: 0.28; }
+
+/* Sobre papel claro o dourado desaparece (1,16:1 contra o osso). Nas seções
+   claras a régua forte é verde; o dourado fica para os fundos escuros. */
+.secao-papel .regua-forte,
+.secao-papel-claro .regua-forte { background: var(--elo-verde-medio); }
+
+/* A régua se desenha da esquerda quando entra no viewport */
+.regua-anima { transform: scaleX(0); transform-origin: left center; }
+.regua-anima.is-visible {
+  transform: scaleX(1);
+  transition: transform var(--dur-reveal) var(--ease-out);
+}
+
+/* ---------- Botões ----------
+   O rótulo desliza para a direita e uma seta entra atrás dele. É o mesmo gesto
+   do "avançar" que a régua faz nas seções — motion que diz para onde o clique
+   leva, não decoração. 180ms, só transform e opacity. */
+.elo-cta {
+  position: relative; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--fonte-corpo); font-weight: 600; font-size: 1rem;
+  letter-spacing: 0.01em;
+  min-height: 54px; padding: 0 28px; border-radius: var(--radius);
+  text-decoration: none; border: 1.5px solid transparent; cursor: pointer;
+  transition: background-color var(--dur-hover) var(--ease-out),
+              border-color var(--dur-hover) var(--ease-out),
+              color var(--dur-hover) var(--ease-out);
+}
+.elo-cta > * { position: relative; z-index: 1; }
+/* Véu que sobe de baixo no hover — preenche em vez de piscar a cor */
+.elo-cta::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background: currentColor; opacity: 0;
+  transform: scaleY(0); transform-origin: bottom;
+  transition: transform var(--dur-hover) var(--ease-out), opacity var(--dur-hover) var(--ease-out);
+}
+.elo-cta:hover::before { transform: scaleY(1); opacity: 0.1; }
+.elo-cta:active { transform: translateY(1px); }   /* press tátil */
+
+/* Seta opcional: <span class="cta-seta">→</span> dentro do botão */
+.cta-seta {
+  display: inline-block; margin-left: -4px;
+  opacity: 0; transform: translateX(-8px);
+  transition: opacity var(--dur-hover) var(--ease-out), transform var(--dur-hover) var(--ease-out);
+}
+.elo-cta:hover .cta-seta, .elo-cta:focus-visible .cta-seta { opacity: 1; transform: translateX(0); }
+
+.elo-cta--ouro { background: var(--elo-dourado); color: var(--elo-verde-escuro); }
+.elo-cta--ouro:hover { background: var(--elo-dourado-claro); }
+.elo-cta--linha { background: transparent; color: #fff; border-color: rgba(255,255,255,0.45); }
+.elo-cta--linha:hover { border-color: #fff; }
+.elo-cta--verde { background: var(--elo-verde-escuro); color: #fff; }
+.elo-cta--verde:hover { background: var(--elo-verde-tinta); }
+.elo-cta--verde-linha { background: transparent; color: var(--elo-verde-escuro); border-color: rgba(44,87,87,0.4); }
+.elo-cta--verde-linha:hover { border-color: var(--elo-verde-escuro); }
+
+/* Foco sempre visível — parte do público navega por teclado e tem baixa visão */
+a:focus-visible, button:focus-visible, .elo-cta:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--elo-dourado); outline-offset: 3px; border-radius: 2px;
+}
+.secao-papel a:focus-visible, .secao-papel-claro a:focus-visible,
+.secao-papel button:focus-visible, .secao-papel-claro button:focus-visible {
+  outline-color: var(--elo-verde-escuro);
+}
+
+/* ---------- Reveal ----------
+   Não é fade-up em tudo: só entra em elemento cuja entrada dirige a leitura —
+   título de seção, linha de lista. 16px de deslocamento, nunca 100px voando. */
+.entra { opacity: 0; transform: translateY(16px); }
+.entra.is-visible {
+  opacity: 1; transform: none;
+  transition: opacity var(--dur-entrada) var(--ease-out),
+              transform var(--dur-entrada) var(--ease-out);
+}
+
+/* ---------- Coreografia de entrada do hero ----------
+   Ordem de leitura: tagline -> título -> texto -> CTA -> dados. Só opacity e
+   transform, então o layout não se mexe (CLS 0). Stagger de 90ms, sequência
+   inteira em ~800ms. */
+.hero-passo {
+  opacity: 0;
+  animation: hero-entra 520ms var(--ease-out) forwards;
+}
+.hero-passo-1 { animation-delay: 60ms; }
+.hero-passo-2 { animation-delay: 150ms; }
+.hero-passo-3 { animation-delay: 240ms; }
+.hero-passo-4 { animation-delay: 330ms; }
+.hero-passo-5 { animation-delay: 420ms; }
+@keyframes hero-entra {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* E-mail e URLs longos não têm onde quebrar e estouram a tela estreita:
+   atendimento@elocuidadosdomiciliar.com.br sozinho passa de 400px. */
+a[href^="mailto:"], .quebra-longa { overflow-wrap: anywhere; }
+
+.galho-marca { position: absolute; pointer-events: none; user-select: none; opacity: 0.06; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .entra { opacity: 1; transform: none; }
+  .regua-anima { transform: scaleX(1); }
+  .hero-passo { opacity: 1; animation: none; }
+  .cta-seta { opacity: 1; transform: none; }
+}

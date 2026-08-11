@@ -1,0 +1,19 @@
+﻿.legal-wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+.legal-updated {
+  font-family: var(--fonte-corpo); font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.73rem;
+  color: var(--elo-verde-escuro); padding-bottom: 14px;
+  border-bottom: 2px solid var(--elo-dourado); margin-bottom: 34px;
+}
+.legal-h {
+  font-family: var(--fonte-display); font-size: 1.45rem; font-weight: 400;
+  color: var(--elo-verde-escuro); margin: 0 0 12px; letter-spacing: -0.015em;
+}
+.legal-bloco { padding: 26px 0; border-bottom: 1px solid rgba(44, 87, 87, 0.16); }
+.legal-p { font-size: 1rem; color: var(--elo-tinta-suave); line-height: 1.68; margin-bottom: 14px; max-width: 68ch; overflow-wrap: anywhere; }
+.legal-p:last-child { margin-bottom: 0; }
+.legal-p a { color: var(--elo-verde-escuro); }
+.legal-lista { margin: 0 0 14px 18px; color: var(--elo-tinta-suave); line-height: 1.68; max-width: 66ch; }
+.legal-lista li { margin-bottom: 8px; padding-left: 4px; }
+/* dourado sobre papel osso mede 1,16:1 e some — o marcador vai no verde */
+.legal-lista li::marker { color: var(--elo-verde-medio); }

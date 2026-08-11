@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.env.local
+
+# ferramental local de desenvolvimento, fora do repositório
+.claude/
+CLAUDE.md
