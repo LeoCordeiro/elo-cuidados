@@ -45,7 +45,7 @@
       <!-- O símbolo inteiro, dentro da tela — é a marca, não um grafismo cortado -->
       <div class="hero-marca">
         <div class="marca-palco" :style="{ width: galhoSize + 'px', height: galhoSize + 'px' }">
-          <VentoSuave />
+          <VentoSuave :tamanho="galhoSize" />
           <EloSymbol class="galho-flutua" :size="galhoSize" cor="#FFD18B" animar
                      alt="Galho com folhas dentro de um círculo, símbolo da ELO" />
         </div>

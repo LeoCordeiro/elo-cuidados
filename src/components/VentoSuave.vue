@@ -1,90 +1,98 @@
 <template>
   <!-- Rajadas de ar atras do simbolo.
-       Nao sao linhas continuas atravessando a tela: sao tracos curtos, de
-       comprimentos e alturas irregulares, que surgem, atravessam e somem. Vento
-       nao e um padrao regular — linha paralela de amplitude igual le como onda
-       de agua, nao como ar em movimento. -->
-  <svg class="vento" viewBox="0 0 480 340" preserveAspectRatio="xMidYMid slice"
-       aria-hidden="true" focusable="false">
-    <g fill="none" stroke="#FFD18B" stroke-linecap="round">
-      <path
-        v-for="(r, i) in RAJADAS" :key="i"
-        class="rajada"
-        :d="arco(r.comp, r.curva)"
-        :stroke-width="r.grossura"
-        :style="{
-          '--y': r.y + 'px',
-          '--op': r.op,
-          '--sobe': r.sobe + 'px',
-          animationDuration: r.dur + 's',
-          animationDelay: r.atraso + 's',
-        }"
-      />
-    </g>
-  </svg>
+       Cada traco percorre uma TRAJETORIA propria (CSS Motion Path) e gira pela
+       tangente da curva — nao corre em linha reta. Foi o que quebrou as versoes
+       anteriores: com o mesmo arco carimbado deslizando na horizontal, o
+       desenho da rajada e o caminho dela nao tinham relacao nenhuma, e o olho
+       lia carimbo repetido em vez de ar em movimento.
+
+       Tecnica adaptada de `element-along-svg-path` (acervo de animacoes), que
+       faz isso com Motion no React; aqui sai em CSS nativo, sem dependencia. -->
+  <div class="vento" :style="{ '--escala': escala }" aria-hidden="true">
+    <span
+      v-for="(r, i) in RAJADAS" :key="i"
+      class="rajada"
+      :style="{
+        '--via': `path('${r.via}')`,
+        '--comp': r.comp + 'px',
+        '--grossura': r.grossura + 'px',
+        '--op': r.op,
+        animationDuration: r.dur + 's',
+        animationDelay: r.atraso + 's',
+      }"
+    />
+  </div>
 </template>
 
 <script setup>
-// Parametros escritos a mao, nao sorteados: o resultado precisa ser sempre o
-// mesmo que foi conferido na tela. A irregularidade e o ponto — comprimento,
-// altura, velocidade e opacidade variam de rajada para rajada, e os atrasos
-// espalham as passagens ao longo de ~20s para nunca formarem fileira.
-const RAJADAS = [
-  { y: 34,  comp: 58, curva: 13, grossura: 1.6, op: 0.66, dur: 5.4, atraso: 0,    sobe: -12 },
-  { y: 96,  comp: 34, curva: 8,  grossura: 1.2, op: 0.46, dur: 7.2, atraso: 1.9,  sobe: -7 },
-  { y: 62,  comp: 82, curva: 19, grossura: 1.8, op: 0.58, dur: 4.6, atraso: 3.4,  sobe: -16 },
-  { y: 150, comp: 46, curva: 11, grossura: 1.4, op: 0.62, dur: 6.1, atraso: 2.6,  sobe: -9 },
-  { y: 128, comp: 26, curva: 6,  grossura: 1.1, op: 0.38, dur: 8.4, atraso: 5.1,  sobe: -5 },
-  { y: 196, comp: 70, curva: 17, grossura: 1.7, op: 0.64, dur: 5,   atraso: 4.2,  sobe: -14 },
-  { y: 232, comp: 40, curva: 10, grossura: 1.3, op: 0.44, dur: 6.8, atraso: 6.7,  sobe: -8 },
-  { y: 172, comp: 92, curva: 22, grossura: 1.5, op: 0.52, dur: 4.2, atraso: 8.1,  sobe: -18 },
-  { y: 276, comp: 52, curva: 12, grossura: 1.6, op: 0.6,  dur: 5.8, atraso: 7.3,  sobe: -11 },
-  { y: 300, comp: 30, curva: 7,  grossura: 1.1, op: 0.36, dur: 7.6, atraso: 9.8,  sobe: -6 },
-  { y: 250, comp: 64, curva: 15, grossura: 1.4, op: 0.5,  dur: 5.2, atraso: 11.4, sobe: -13 },
-  { y: 82,  comp: 44, curva: 10, grossura: 1.3, op: 0.55, dur: 6.4, atraso: 12.9, sobe: -10 },
-  { y: 210, comp: 36, curva: 9,  grossura: 1.2, op: 0.42, dur: 7,   atraso: 14.6, sobe: -8 },
-  { y: 116, comp: 76, curva: 20, grossura: 1.7, op: 0.62, dur: 4.8, atraso: 16.2, sobe: -15 },
-  { y: 264, comp: 28, curva: 6,  grossura: 1.1, op: 0.37, dur: 8,   atraso: 18.3, sobe: -6 },
-]
+const props = defineProps({
+  // lado da caixa do simbolo, em px — as trajetorias sao desenhadas em 400x400
+  tamanho: { type: Number, default: 400 },
+})
+const escala = () => props.tamanho / 400
 
-// Arco assimetrico: sobe mais rapido do que desce, como ar que contorna alguma
-// coisa e escapa. Curva simetrica lia como traco reto de tao suave.
-function arco(comp, curva) {
-  return `M 0 0 c ${comp * 0.22} ${-curva}, ${comp * 0.52} ${-curva * 1.15}, ${comp * 0.74} ${-curva * 0.62}`
-       + ` c ${comp * 0.12} ${curva * 0.3}, ${comp * 0.2} ${curva * 0.5}, ${comp * 0.26} ${curva * 0.62}`
-}
+// Trajetorias em uma caixa de 400x400, todas entrando pela esquerda e saindo
+// pela direita, mas cada uma com curvatura, altura e inclinacao proprias:
+// algumas sobem no fim, outras caem, outras fazem S. E isso que tira o ar de
+// "padrao" — a variacao esta no CAMINHO, nao so no tamanho do traco.
+const RAJADAS = [
+  { via: 'M -70 88 C 40 52, 130 118, 220 78 S 360 34, 470 62',     comp: 84,  grossura: 2.2, op: 0.8,  dur: 7.5,  atraso: 0 },
+  { via: 'M -70 176 C 60 206, 150 142, 246 182 S 380 214, 470 178', comp: 58,  grossura: 1.7, op: 0.6,  dur: 9.4,  atraso: 1.6 },
+  { via: 'M -70 132 C 70 96, 176 168, 272 122 S 390 74, 470 104',   comp: 112, grossura: 2.5, op: 0.74, dur: 6.4,  atraso: 3.1 },
+  { via: 'M -70 262 C 54 288, 148 226, 250 266 S 386 300, 470 268', comp: 70,  grossura: 1.9, op: 0.68, dur: 8.6,  atraso: 2.2 },
+  { via: 'M -70 44 C 88 24, 168 74, 268 40 S 392 8, 470 30',        comp: 46,  grossura: 1.5, op: 0.5,  dur: 10.2, atraso: 4.8 },
+  { via: 'M -70 218 C 46 244, 140 184, 236 222 S 372 258, 470 226', comp: 98,  grossura: 2.3, op: 0.76, dur: 7,    atraso: 3.9 },
+  { via: 'M -70 320 C 66 344, 158 288, 258 324 S 388 352, 470 330', comp: 60,  grossura: 1.8, op: 0.55, dur: 9,    atraso: 6.3 },
+  { via: 'M -70 108 C 52 140, 146 76, 244 116 S 384 152, 470 124',  comp: 128, grossura: 2,   op: 0.64, dur: 6,    atraso: 7.6 },
+  { via: 'M -70 292 C 74 262, 164 328, 264 286 S 396 246, 470 272', comp: 76,  grossura: 2.2, op: 0.72, dur: 8.2,  atraso: 5.4 },
+  { via: 'M -70 156 C 62 182, 152 122, 252 160 S 382 192, 470 166', comp: 42,  grossura: 1.4, op: 0.46, dur: 10.8, atraso: 9.1 },
+  { via: 'M -70 240 C 80 210, 170 274, 270 234 S 398 196, 470 220', comp: 92,  grossura: 1.9, op: 0.62, dur: 7.2,  atraso: 8.4 },
+  { via: 'M -70 66 C 44 92, 138 36, 240 72 S 376 104, 470 78',      comp: 66,  grossura: 1.8, op: 0.7,  dur: 8.8,  atraso: 10.7 },
+  { via: 'M -70 198 C 72 168, 162 232, 262 192 S 390 154, 470 180', comp: 50,  grossura: 1.5, op: 0.52, dur: 9.8,  atraso: 12.2 },
+  { via: 'M -70 340 C 58 312, 150 372, 254 336 S 388 300, 470 322', comp: 104, grossura: 2.4, op: 0.68, dur: 6.8,  atraso: 11.5 },
+]
 </script>
 
 <style scoped>
 .vento {
-  position: absolute; inset: 0; width: 100%; height: 100%;
+  position: absolute; top: 50%; left: 50%;
+  width: 400px; height: 400px; margin: -200px 0 0 -200px;
+  transform: scale(var(--escala));
   pointer-events: none;
-  /* Contido na caixa do simbolo: com overflow visivel as rajadas alcancavam a
-     coluna do texto. O corte nunca aparece porque o envelope de opacidade leva
-     cada traco a zero antes de ele chegar na borda. */
   overflow: hidden;
 }
 
-/* Cada rajada entra pela esquerda, atravessa subindo de leve e some. O envelope
-   de opacidade e o que faz parecer ar: o traco nao aparece nem desaparece de
-   uma vez, ele ganha e perde corpo no meio do caminho. */
+/* O traco tem cabeca e cauda: o gradiente faz as pontas sumirem, entao ele
+   entra e sai da curva sem comeco nem fim duro. `offset-rotate: auto` alinha
+   o traco a tangente — e o que faz o desenho acompanhar o caminho. */
 .rajada {
+  position: absolute; top: 0; left: 0;
+  width: var(--comp); height: var(--grossura);
+  border-radius: var(--grossura);
+  background: linear-gradient(90deg,
+    rgba(255, 209, 139, 0) 0%,
+    rgba(255, 209, 139, 0.85) 38%,
+    rgba(255, 209, 139, 0.95) 62%,
+    rgba(255, 209, 139, 0) 100%);
+  offset-path: var(--via);
+  offset-rotate: auto;
+  offset-anchor: 50% 50%;
   opacity: 0;
-  animation-name: rajada;
-  animation-timing-function: cubic-bezier(0.4, 0.05, 0.6, 0.95);
+  animation-name: soprar;
+  animation-timing-function: cubic-bezier(0.37, 0.06, 0.63, 0.94);
   animation-iteration-count: infinite;
-  will-change: transform, opacity;
+  will-change: offset-distance, opacity;
 }
 
-/* Percurso inteiro dentro do viewBox (0..480): nasce em -40 invisivel, ganha
-   corpo no meio e some antes de 470. */
-@keyframes rajada {
-  0%   { transform: translate(-40px, var(--y)); opacity: 0; }
-  14%  { opacity: calc(var(--op) * 0.4); }
-  42%  { opacity: var(--op); }
-  70%  { opacity: calc(var(--op) * 0.75); }
-  90%  { opacity: 0; }
-  100% { transform: translate(470px, calc(var(--y) + var(--sobe))); opacity: 0; }
+/* A velocidade nao e constante: acelera na entrada e afrouxa no fim, como
+   lufada. Duracao longa (6-11s) — e ar parado que se move, nao vento forte. */
+@keyframes soprar {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  16%  { opacity: calc(var(--op) * 0.45); }
+  44%  { opacity: var(--op); }
+  72%  { opacity: calc(var(--op) * 0.72); }
+  92%  { opacity: 0; }
+  100% { offset-distance: 100%; opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
